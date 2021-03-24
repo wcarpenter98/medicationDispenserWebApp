@@ -1,0 +1,10 @@
+{
+  "auth": {
+    "medicationdispenserwe26992f4": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "customAuth": false
+    }
+  }
+}
