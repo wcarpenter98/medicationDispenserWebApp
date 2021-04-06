@@ -110,7 +110,8 @@ const Current_medication = () => {
                   
                   <th>Name</th>
                   <th>Quantity</th>
-                  <th>Refill Frequency</th>
+                                    <th>Refill Frequency</th>
+                                    <th>Nick Name</th>
                 </tr>
               </thead>
               <tbody class="">
@@ -123,7 +124,8 @@ const Current_medication = () => {
             	
               <td>{item.name}</td>
               <td>{item.quantity}</td>
-              <td>{item.refill}</td>
+                                <td>{item.refill}</td>
+                                <td>{item.nickName}</td>
               </tr>
               </If>
          
