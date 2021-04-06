@@ -22,6 +22,7 @@ import Edit_caregiver_information from './components/Edit_caregiver_information'
 import Edit_machine_information from './components/Edit_machine_information'
 import Error from './components/Error';
 import Navigation from './components/Navigation';
+import Username from './components/Username'
 
 
 
@@ -33,7 +34,7 @@ class App extends Component {
         return (
             <BrowserRouter>
                 <div>
-
+                    <Username />
                     <Switch>
                         <Route path="/" component={Home} exact />
                         <Route path="/consumption_history" component={Consumption_history} />
