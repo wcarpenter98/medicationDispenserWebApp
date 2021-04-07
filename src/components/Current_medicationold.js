@@ -7,28 +7,20 @@ import { Case, ForEach, If, Switch } from 'react-control-flow-components';
 import { API, Auth} from 'aws-amplify';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 
-const initialFormState = { medicationName: ''}
+const initialFormState = { name: '', quantity: '', refill: '' }
 var re;
 
-const Current_medication = (props) => {
+const Current_medication = () => {
 
 	const [medications, setMedications] = useState([]);
   const [formData, setFormData] = useState(initialFormState);
-  // var search = this != null ? Qs.parse(this.props.location.search, { ignoreQueryPrefix: true }).search: '';
-
-  console.log(new String("apple"));
-
-  const searc = props.location.search; 
-const params = new URLSearchParams(searc);
-const search = params.get('search'); 
- 
   
   Promise.resolve(getUser()).then(function(result){
-            			
+            			console.log("result:", result);
             			re= new String(result);
-            			
+            			console.log("rein", re);
             		})
- 
+  console.log("reout", re);
 
   // console.log(Promise.resolve(getUser()).then(function(result)));
 
@@ -40,16 +32,25 @@ const search = params.get('search');
   	// await (await Auth.currentCredentials()).getPromise();
    //  const user = await Auth.currentUserInfo();
    const user = (await Auth.currentSession().then(token => { return token } )).getIdToken().payload;
+   console.log("info", user["cognito:username"]);
     return user["cognito:username"];
   }
 
   async function fetchMedications() {
-  	console.log("searchbegin: ", search);
     const apiData = await API.graphql({ query: listMedications });
     setMedications(apiData.data.listMedications.items);
   }
 
-   async function deleteMedication({ id }) {
+  async function createMedication() {
+    if (!formData.name || !formData.quantity || !formData.refill) return;
+    getUser()
+    formData.userid = (await Auth.currentSession()).getIdToken().payload["cognito:username"];
+    await API.graphql({ query: createMedicationMutation, variables: { input: formData } });
+    setMedications([ ...medications, formData ]);
+    setFormData(initialFormState);
+  }
+
+  async function deleteMedication({ id }) {
     const newMedicationsArray = medications.filter(note => note.id !== id);
     setMedications(newMedicationsArray);
     await API.graphql({ query: deleteMedicationMutation, variables: { input: { id } }});
@@ -67,13 +68,13 @@ const search = params.get('search');
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet"/>
     <title>Current Medication</title>
   
-    <div id="menu-banner" class="row text-center py-3">
+    <div id="banner" class="row text-center py-3">
         <div class="col">
-          <p class="display-5" id="login-title">
-            <a href="/">
-                <img id="menu-image" src="https://wchstv.com/resources/media/1f5b2909-ee90-495b-be68-68d26537cbab-large16x9_WVU.png?1518011273124"/>
-            </a>
-          </p>
+            <p class="display-5" id="login-title">
+                <a href="/">
+                    <img id="menu-image" src="https://wchstv.com/resources/media/1f5b2909-ee90-495b-be68-68d26537cbab-large16x9_WVU.png?1518011273124"/>
+                </a>
+            </p>
         </div>
     </div>
     
@@ -86,19 +87,10 @@ const search = params.get('search');
         <form class="justify-content-center">
           <div class="row justify-content-center">
             <div class="col-lg-3 col-md-4 col-5">
-              <input type="text" class="form-control custom-input" placeholder="Med. Name" autofocus onChange={e => setFormData({ ...formData, 'medicationName': e.target.value})}
-        value={formData.medicationName}/>
+              <input type="text" class="form-control custom-input" placeholder="Med. Name" autofocus required/>
             </div>
             <div class="col-lg-3 col-md-4 col-5">
-              <input type="button" value="Search" class="btn btn-light form-control"  onClick={(e) => {
-      e.preventDefault();
-      window.location.href='/current_medication?search='+formData.medicationName;
-      }}/>
-      		<input type="button" value="Reset Search" class="btn btn-light form-control"  onClick={(e) => {
-      e.preventDefault();
-      console.log("formdata: ", formData);
-      window.location.href='/current_medication';
-      }}/>
+              <input type="submit" value="Search" class="btn btn-light form-control"/>
             </div>
           </div>
         </form>
@@ -117,13 +109,9 @@ const search = params.get('search');
                 <tr>
                   
                   <th>Name</th>
-                  <th>Start Date</th>
-                  <th>End Date</th>
-                  <th>Time Slot 1</th>
-                  <th>Time Slot 2</th>
-                  <th>Time Slot 3</th>
-                  <th>Username</th>
-                  <th>Delete</th>
+                  <th>Quantity</th>
+                                    <th>Refill Frequency</th>
+                                    <th>Nick Name</th>
                 </tr>
               </thead>
               <tbody class="">
@@ -131,49 +119,15 @@ const search = params.get('search');
          		{medications.map(item => (
          			
          		
-            	<If test={search==null ? re == item.userid: re==item.userid && search==item.name}>
+            	<If test={re.localeCompare(new String(item.userid))==0}>
             	<tr>
             	
               <td>{item.name}</td>
-              <td>{item.start}</td>
-              <td>{item.end}</td>
-
-
-              <If test={item.slot1}>
-              <td id="true">{new String(item.slot1)}</td>
-              </If>
-
-              <If test={!item.slot1}>
-              <td id="false">{new String(item.slot1)}</td>
-              </If>
-
-
-              <If test={item.slot2}>
-              <td id="true">{new String(item.slot2)}</td>
-              </If>
-
-              <If test={!item.slot2}>
-              <td id="false">{new String(item.slot2)}</td>
-              </If>
-
-
-              <If test={item.slot3}>
-              <td id="true">{new String(item.slot3)}</td>
-              </If>
-
-              <If test={!item.slot3}>
-              <td id="false">{new String(item.slot3)}</td>
-              </If>
-
-
-              <td>{item.userid}</td>
-              <td>
-              	<button onClick={() => deleteMedication(item)}>Delete</button>
-              </td>
-
+              <td>{item.quantity}</td>
+                                <td>{item.refill}</td>
+                                <td>{item.nickName}</td>
               </tr>
               </If>
-              
          
               ))}
 
